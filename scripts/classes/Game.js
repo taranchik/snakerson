@@ -33,6 +33,7 @@ class Game {
       fontSize: 24,
       fill: "#ffffff",
     });
+    this.bestScoreLabel.setScore(this.gameManager.getCookie("bestScore"));
     this.currentScoreLabel = new ScoreLabel("Current Score", {
       fontFamily: "Arial",
       fontSize: 24,
