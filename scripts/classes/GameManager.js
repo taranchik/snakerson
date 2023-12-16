@@ -20,32 +20,6 @@ class GameManager {
     this.resetCoordinates(wall, snake, food);
   }
 
-  setCookie(name, value) {
-    var expires = "";
-    var date = new Date();
-    date.setTime(date.getTime() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 years in the future
-    expires = "; expires=" + date.toUTCString();
-    document.cookie = name + "=" + (value || "") + expires + "; path=/";
-  }
-
-  getCookie(name) {
-    let value = 0;
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(";");
-
-    for (let i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) === " ") {
-        c = c.substring(1, c.length);
-      }
-      if (c.indexOf(nameEQ) === 0) {
-        value = parseInt(c.substring(nameEQ.length, c.length));
-      }
-    }
-
-    return value;
-  }
-
   setActiveGameMode(gameMode) {
     this.activeGameMode = gameMode;
   }
@@ -176,15 +150,12 @@ class GameManager {
       const rows = this.getWidth();
       const columns = this.getHeight();
 
-      wall.reset();
-      snake.reset();
-      food.reset();
       currentScoreLabel.reset();
       this.resetField(rows, columns);
       this.resetCoordinates(wall, snake, food);
     }
 
-    snake.extend();
+    snake.move();
 
     if (
       this.activeGameMode === this.gameModes.NO_DIE &&
@@ -201,8 +172,10 @@ class GameManager {
       (cellName == snake.name || cellName == wall.name)
     ) {
       if (bestScoreLabel.getScore() < currentScoreLabel.getScore()) {
-        this.setCookie("bestScore", currentScoreLabel.getScore());
-        bestScoreLabel.setScore(currentScoreLabel.getScore());
+        const bestScore = currentScoreLabel.getScore();
+
+        localStorage.setItem("bestScore", bestScore);
+        bestScoreLabel.setScore(bestScore);
       }
       snake.remove(snake.getHead());
       this.setGameOver(true);

@@ -30,25 +30,37 @@ class Item {
 
 // Snake class to handle snake behavior
 class Snake extends Item {
-  constructor() {
+  constructor(fieldWidth, fieldHeight) {
     super("SNAKE", "0x000000");
 
-    this.direction = { row: 0, col: 1 };
+    this.key = "";
+    this.initial_coordinates = [
+      {
+        row: Math.floor(fieldWidth / 2),
+        col: Math.floor(fieldHeight / 2),
+      },
+    ];
+    this.direction = { row: 0, col: -1 };
     // 1000 milliseconds = 1 second
     this.speed = 1000;
 
-    // Bind the 'this' context to the handleKeyDown method
-    this.handleKeyDown = this.handleKeyDown.bind(this);
-
     // Add event listener for keydown events
-    window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  reset() {
+    this.coordinates = Array.from(this.initial_coordinates);
+  }
+
+  handleKeyDown() {
+    event.preventDefault();
+
+    this.key = event.key;
   }
 
   // Method to update the snake's direction based on key presses
-  handleKeyDown(event) {
-    event.preventDefault();
-
-    switch (event.key) {
+  move() {
+    switch (this.key) {
       case "ArrowUp":
         if (this.direction.col !== 1) {
           this.direction = { row: 0, col: -1 };
@@ -71,6 +83,8 @@ class Snake extends Item {
         }
         break;
     }
+
+    this.extend();
   }
 
   extend() {
@@ -131,7 +145,7 @@ class Food extends Item {
   }
 }
 
-// Food class to handle food behavior
+// Wall class to handle walls behavior
 class Wall extends Item {
   constructor(rows, columns) {
     super("WALL", "0xa85c32");

@@ -246,10 +246,15 @@ class Label extends PIXI.Text {
 }
 
 class ScoreLabel extends Label {
-  constructor(text, style) {
+  constructor(text, style, score) {
     super(text, style);
     this.content = text;
-    this.score = 0;
+
+    if (score) {
+      this.score = score;
+    } else {
+      this.score = 0;
+    }
 
     this.setText();
   }

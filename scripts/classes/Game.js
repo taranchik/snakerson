@@ -11,7 +11,7 @@ class Game {
 
     // Initialize game components
     this.wall = new Wall(rows, columns);
-    this.snake = new Snake();
+    this.snake = new Snake(rows, columns);
     this.food = new Food();
     this.gameManager = new GameManager(
       rows,
@@ -28,12 +28,15 @@ class Game {
       this.gameManager.toggleGamePause.bind(this.gameManager),
       this.gui.toggleGameFieldContainerVisibility.bind(this.gui)
     );
-    this.bestScoreLabel = new ScoreLabel("Best Score", {
-      fontFamily: "Arial",
-      fontSize: 24,
-      fill: "#ffffff",
-    });
-    this.bestScoreLabel.setScore(this.gameManager.getCookie("bestScore"));
+    this.bestScoreLabel = new ScoreLabel(
+      "Best Score",
+      {
+        fontFamily: "Arial",
+        fontSize: 24,
+        fill: "#ffffff",
+      },
+      localStorage.getItem("bestScore")
+    );
     this.currentScoreLabel = new ScoreLabel("Current Score", {
       fontFamily: "Arial",
       fontSize: 24,
@@ -59,10 +62,14 @@ class Game {
       this.menuButton,
     ]);
 
-    this.resize(rows, columns);
+    this.handleResize = function () {
+      this.resize(rows, columns);
+    };
+
+    this.handleResize();
 
     // Handle window resize
-    window.addEventListener("resize", () => this.resize(rows, columns));
+    window.addEventListener("resize", this.handleResize);
 
     // Variables to help with the timing of game updates
     this.elapsedTime = 0;
@@ -121,5 +128,9 @@ class Game {
     }
 
     this.gui.render(this.wall, this.snake, this.food);
+  }
+
+  destroy() {
+    window.removeEventListener("resize", this.handleResize);
   }
 }

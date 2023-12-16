@@ -1,1 +1,1 @@
-const game = new Game(20, 20);
+const game = new Game(21, 21);
