@@ -1,13 +1,16 @@
 // Game class to initialize and run the game loop
-class Game {
+class Game extends Application {
   constructor(rows, columns) {
-    this.app = new Application({
+    super({
       width: window.innerWidth,
       height: window.innerHeight,
     });
 
     // Ensure the canvas fills the entire screen
-    this.app.view.style.cssText = "position: absolute; display: block;";
+    this.view.style.cssText = "position: absolute; display: block;";
+
+    this.rows = rows;
+    this.columns = columns;
 
     // Initialize game components
     this.wall = new Wall(rows, columns);
@@ -50,8 +53,8 @@ class Game {
       this.menu.toggleMenu.bind(this.menu)
     );
 
-    document.body.appendChild(this.app.view);
-    this.addChildren(this.app.stage, [this.menu, this.gui.gameFieldContainer]);
+    document.body.appendChild(this.view);
+    this.addChildren(this.stage, [this.menu, this.gui.gameFieldContainer]);
     this.addChildren(this.gui.gameFieldContainer, [
       this.gui.fieldContainer,
       this.gui.labelsContainer,
@@ -62,39 +65,49 @@ class Game {
       this.menuButton,
     ]);
 
-    this.handleResize = function () {
-      this.resize(rows, columns);
-    };
-
-    this.handleResize();
+    this.align();
 
     // Handle window resize
-    window.addEventListener("resize", this.handleResize);
+    window.addEventListener("resize", this.align.bind(this));
 
     // Variables to help with the timing of game updates
     this.elapsedTime = 0;
 
     // Start the game loop
-    this.app.ticker.add((delta) => this.gameLoop(delta));
+    this.ticker.add((delta) => this.gameLoop(delta));
   }
 
-  resize(rows, columns) {
-    this.app.renderer.resize(window.innerWidth, window.innerHeight);
-    this.gui.resize(this.app.stage, rows, columns);
-    this.bestScoreLabel.resize(
-      this.gui.cellSize * 1.5,
-      this.gui.cellSize * 1.5
-    );
-    this.currentScoreLabel.resize(
+  align() {
+    // Align app stage
+    this.renderer.resize(window.innerWidth, window.innerHeight);
+
+    // Align game field and its components
+    this.gui.align(this.rows, this.columns);
+    this.bestScoreLabel.align(this.gui.cellSize * 1.5, this.gui.cellSize * 1.5);
+    this.currentScoreLabel.align(
       this.gui.cellSize * 1.5,
       this.gui.cellSize * 2.25
     );
-    this.menuButton.resize(
+    this.menuButton.align(
       this.gui.gameFieldContainer.width -
         this.menuButton.width -
         this.gui.cellSize * 1.5,
       this.gui.cellSize * 1.5
     );
+
+    // Align menu
+    this.menu.align(window.innerWidth, window.innerHeight);
+  }
+
+  centerGameField(rows, columns) {
+    const gameWidth = columns * this.cellSize;
+    const gameHeight = rows * this.cellSize;
+
+    const centerX = (window.innerWidth - gameWidth) / 2;
+    const centerY = (window.innerHeight - gameHeight) / 2;
+
+    this.gameFieldContainer.x = centerX;
+    this.gameFieldContainer.y = centerY;
   }
 
   addChildren(container, items) {
@@ -108,7 +121,7 @@ class Game {
   gameLoop(delta) {
     if (!this.gameManager.gameOver && !this.gameManager.gamePause) {
       // Add the time since the last frame to the elapsed time
-      this.elapsedTime += this.app.ticker.elapsedMS;
+      this.elapsedTime += this.ticker.elapsedMS;
 
       // Check if a second has passed; update the game if it has
       if (this.elapsedTime >= this.snake.getSpeed()) {
@@ -131,6 +144,7 @@ class Game {
   }
 
   destroy() {
-    window.removeEventListener("resize", this.handleResize);
+    this.snake.destroy();
+    window.removeEventListener("resize", this.handleWindowResize);
   }
 }

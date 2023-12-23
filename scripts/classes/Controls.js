@@ -54,22 +54,7 @@ class Menu extends PIXI.Container {
     this.addChild(this.playButton);
     this.addChild(this.exitButton);
 
-    // this.menuContainer.addChild(radioButton.content.element);
-
-    // radioButton.element.anchor.set(0.5);
-    // radioButton.x = window.innerWidth / 2;
-    // radioButton.y = window.innerHeight / 2;
-    // Create a Graphics object for the background
-    // this.background = new PIXI.Graphics();
-    // this.background.beginFill(0x000000, 0.95); // Semi-transparent black
-    // this.background.drawRect(0, 0, containerWidth, containerHeight); // Full screen size
-    // this.background.endFill();
-
-    // Add the background to the menu
-    // this.menuContainer.addChild(this.background);
     this.toggleMenu();
-
-    this.resize(window.innerWidth, window.innerHeight);
   }
 
   setSelectedOption(option) {
@@ -118,39 +103,51 @@ class Menu extends PIXI.Container {
     this.visible = !this.visible;
   }
 
-  resize(x, y) {
-    this.titleLabel.y = 10;
-    this.titleLabel.x = (x - this.titleLabel.width) / 2; // Center horizontally
+  align(parentWidth, parentHeight) {
+    // Control current Y position
+    let currentY = this.titleLabel.height + 60;
+    // Center titleLabel horizontally
+    this.titleLabel.x = (parentWidth - this.titleLabel.width) / 2;
+    // currentX to control RadioButtons vertical position
+    let currentX = 0;
 
-    let currentY = this.titleLabel.height + 80;
-
+    // Center RadioButtons
     for (let i = 0; i < this.children.length; i++) {
       const child = this.children[i];
 
       if (child instanceof RadioButton) {
+        if (!currentX) {
+          currentX = (parentWidth - child.width) / 2;
+        }
+
+        // Set y position
         child.y = currentY;
-        child.x = (x - child.width) / 2; // Center horizontally
+        // Set x coordinate the same as first RadioButton
+        child.x = currentX;
+        // Update currentY position
         currentY += child.height + 20;
       }
     }
 
-    const buttonsY = currentY;
-    // Calculate the combined width of both buttons and the space between them
-    const buttonsMargin = 40;
+    // Buttons horizontal offset
+    const horizontalButtonsOffset = 40;
+    // Sum width of both buttons and the offset between them
     const combinedButtonsWidth =
-      this.playButton.width + this.exitButton.width + buttonsMargin;
+      this.playButton.width + horizontalButtonsOffset + this.exitButton.width;
 
-    // Calculate the starting x position for the first button to center the row
-    const startingX = (x - combinedButtonsWidth * 2) / 2;
+    // Set playButton y position
+    this.playButton.y = currentY;
+    // Calculate and set x for playButton
+    this.playButton.x = (parentWidth - combinedButtonsWidth * 2) / 2;
 
-    // Position the play button
-    this.playButton.y = buttonsY;
-    this.playButton.x = startingX;
-
-    // Position the exit button right next to the play button
-    this.exitButton.y = buttonsY;
+    // Set exitButton y position
+    this.exitButton.y = currentY;
+    // Calculate and set x for exitButton
     this.exitButton.x =
-      this.playButton.x + this.playButton.width + buttonsMargin;
+      this.playButton.x + this.playButton.width + horizontalButtonsOffset;
+
+    // Center container vertically
+    this.y = (parentHeight - this.height) / 2;
   }
 }
 
@@ -180,10 +177,10 @@ class Button extends PIXI.Container {
     // Event listener for the button
     this.on("pointerdown", onClick);
 
-    this.resize(width, height);
+    this.align(width, height);
   }
 
-  resize(x, y) {
+  align(x, y) {
     this.graphics.x = x;
     this.graphics.y = y;
     this.label.x = x + (this.graphics.width - this.label.width) / 2;
@@ -230,8 +227,6 @@ class RadioButton extends Button {
   setSelected(isSelected) {
     this.innerSquare.visible = isSelected;
   }
-
-  resize() {}
 }
 
 class Label extends PIXI.Text {
@@ -239,7 +234,7 @@ class Label extends PIXI.Text {
     super(text, style);
   }
 
-  resize(x, y) {
+  align(x, y) {
     this.x = x;
     this.y = y;
   }

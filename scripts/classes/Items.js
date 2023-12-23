@@ -50,6 +50,8 @@ class Snake extends Item {
 
   reset() {
     this.coordinates = Array.from(this.initial_coordinates);
+    // 1000 milliseconds = 1 second
+    this.speed = 1000;
   }
 
   handleKeyDown() {

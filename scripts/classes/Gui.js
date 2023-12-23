@@ -9,17 +9,20 @@ class GUI {
     this.cellSize = 0;
   }
 
-  resize(stage, rows, columns) {
+  align(rows, columns) {
     // You might also want to adjust other game elements here
     this.cellSize = Math.min(
       window.innerWidth / rows,
       window.innerHeight / columns
     );
 
-    this.setStageBackground(stage);
-
+    //
+    this.setBackground();
+    //
     this.centerGameField(rows, columns);
+    //
     this.setGameFieldBackground(rows, columns);
+    // Remove all items from the field
     this.fieldContainer.removeChildren();
   }
 
@@ -63,7 +66,8 @@ class GUI {
     }
   }
 
-  setStageBackground(stage) {
+  setBackground() {
+    const parentContainer = this.gameFieldContainer.parent;
     // Create a canvas element
     const canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
@@ -82,14 +86,17 @@ class GUI {
 
     let background = undefined;
 
-    if (stage.children.length && stage.getChildAt(0).name === "background") {
-      background = stage.getChildAt(0);
+    if (
+      parentContainer.children.length &&
+      parentContainer.getChildAt(0).name === "background"
+    ) {
+      background = parentContainer.getChildAt(0);
     } else {
       // Create a Pixi sprite using the texture
       background = new PIXI.Sprite();
       background.name = "background";
-      // Add the sprite to app.stage
-      stage.addChildAt(background, 0);
+      // Add the sprite to app.parentContainer
+      parentContainer.addChildAt(background, 0);
     }
 
     background.texture = texture;
