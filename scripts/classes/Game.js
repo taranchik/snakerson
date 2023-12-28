@@ -47,7 +47,7 @@ class Game extends Application {
         fontSize: 24,
         fill: "#ffffff",
       },
-      this.gameManager.bestScore[this.gameManager.activeGameMode]
+      this.gameManager.getBestScore()
     );
     this.menuButton = new Button(
       "Menu",

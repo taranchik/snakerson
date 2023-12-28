@@ -95,8 +95,16 @@ class GameManager extends Storage {
     return this.field[point.row][point.col];
   }
 
+  getBestScore() {
+    return this.bestScore[this.activeGameMode];
+  }
+
   toggleGamePause() {
     this.gamePause = !this.gamePause;
+  }
+
+  setBestScore(score) {
+    this.bestScore[this.activeGameMode] = score;
   }
 
   setActiveGameMode(gameMode) {
@@ -157,7 +165,7 @@ class GameManager extends Storage {
 
     this.setActiveGameMode(selectedGameMode);
     currentScoreLabel.reset();
-    bestScoreLabel.setScore(this.bestScore[this.activeGameMode] || 0);
+    bestScoreLabel.setScore(this.getBestScore() || 0);
     this.resetField(rows, columns);
     this.resetCoordinates(wall, snake, food);
   }
@@ -187,10 +195,13 @@ class GameManager extends Storage {
       this.activeGameMode !== this.gameModes.NO_DIE &&
       (cellName == snake.name || cellName == wall.name)
     ) {
-      if (bestScoreLabel.getScore() < currentScoreLabel.getScore()) {
-        this.bestScore[this.activeGameMode] = currentScoreLabel.getScore();
-        bestScoreLabel.setScore(this.bestScore[this.activeGameMode]);
+      const currentScore = currentScoreLabel.getScore();
+
+      if (bestScoreLabel.getScore() < currentScore) {
+        this.setBestScore(currentScore);
+        bestScoreLabel.setScore(currentScore);
       }
+
       snake.remove(snake.getHead());
       this.setGameOver(true);
       toggleMenu();
