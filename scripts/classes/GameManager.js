@@ -1,27 +1,28 @@
 // GameManager class to manage game modes and rules
-class GameManager {
+class GameManager extends Storage {
   constructor(rows, columns, wall, snake, food) {
+    super("GameManager");
+
     // Initialize game manager properties
-    this.gameModes = Object.freeze({
-      CLASSIC: "Classic",
-      NO_DIE: "No Die",
-      WALLS: "Walls",
-      PORTAL: "Portal",
-      SPEED: "Speed",
-    });
-    this.activeGameMode = this.gameModes.SPEED;
+    if (this.localStorageData === null) {
+      this.gameModes = Object.freeze({
+        CLASSIC: "Classic",
+        NO_DIE: "No Die",
+        WALLS: "Walls",
+        PORTAL: "Portal",
+        SPEED: "Speed",
+      });
 
-    this.gameOver = false;
-    this.gamePause = false;
+      this.field = new Array();
+      this.activeGameMode = this.gameModes.CLASSIC;
+      this.bestScore = { [this.gameModes.CLASSIC]: 0 };
+      this.gameOver = false;
 
-    this.field = new Array();
+      this.resetField(rows, columns);
+      this.resetCoordinates(wall, snake, food);
+    }
 
-    this.resetField(rows, columns);
-    this.resetCoordinates(wall, snake, food);
-  }
-
-  setActiveGameMode(gameMode) {
-    this.activeGameMode = gameMode;
+    this.gamePause = true;
   }
 
   resetField(rows, columns) {
@@ -38,10 +39,7 @@ class GameManager {
     const items = [wall, snake, food];
 
     for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      item.reset();
-      const coordinates = item.coordinates;
-      const name = item.name;
+      const { name, coordinates } = items[i];
 
       for (let j = 0; j < coordinates.length; j++) {
         const point = coordinates[j];
@@ -62,7 +60,8 @@ class GameManager {
       this.activeGameMode === this.gameModes.PORTAL &&
       food.coordinates.length < 2
     ) {
-      food.add(this.findFreeCell(snake.getNextHead()));
+      const freeCell = this.findFreeCell(snake.getNextHead());
+      this.setItemCell(food, freeCell);
     }
   }
 
@@ -100,6 +99,10 @@ class GameManager {
     this.gamePause = !this.gamePause;
   }
 
+  setActiveGameMode(gameMode) {
+    this.activeGameMode = gameMode;
+  }
+
   setGameOver(gameOver) {
     this.gameOver = gameOver;
   }
@@ -135,6 +138,30 @@ class GameManager {
     }
   }
 
+  reset(
+    wall,
+    snake,
+    food,
+    currentScoreLabel,
+    bestScoreLabel,
+    selectedGameMode
+  ) {
+    const rows = this.getWidth();
+    const columns = this.getHeight();
+    const items = [wall, snake, food];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      item.reset();
+    }
+
+    this.setActiveGameMode(selectedGameMode);
+    currentScoreLabel.reset();
+    bestScoreLabel.setScore(this.bestScore[this.activeGameMode] || 0);
+    this.resetField(rows, columns);
+    this.resetCoordinates(wall, snake, food);
+  }
+
   play(
     wall,
     snake,
@@ -144,17 +171,6 @@ class GameManager {
     selectedGameMode,
     toggleMenu
   ) {
-    if (this.activeGameMode !== selectedGameMode) {
-      this.setActiveGameMode(selectedGameMode);
-
-      const rows = this.getWidth();
-      const columns = this.getHeight();
-
-      currentScoreLabel.reset();
-      this.resetField(rows, columns);
-      this.resetCoordinates(wall, snake, food);
-    }
-
     snake.move();
 
     if (
@@ -172,14 +188,11 @@ class GameManager {
       (cellName == snake.name || cellName == wall.name)
     ) {
       if (bestScoreLabel.getScore() < currentScoreLabel.getScore()) {
-        const bestScore = currentScoreLabel.getScore();
-
-        localStorage.setItem("bestScore", bestScore);
-        bestScoreLabel.setScore(bestScore);
+        this.bestScore[this.activeGameMode] = currentScoreLabel.getScore();
+        bestScoreLabel.setScore(this.bestScore[this.activeGameMode]);
       }
       snake.remove(snake.getHead());
       this.setGameOver(true);
-      this.setActiveGameMode("");
       toggleMenu();
 
       return;

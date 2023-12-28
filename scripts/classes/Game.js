@@ -27,9 +27,18 @@ class Game extends Application {
     this.menu = new Menu(
       this.gameManager.gameModes,
       this.gameManager.activeGameMode,
-      this.gameManager.setGameOver.bind(this.gameManager),
+      this.restart.bind(this),
       this.gameManager.toggleGamePause.bind(this.gameManager),
       this.gui.toggleGameFieldContainerVisibility.bind(this.gui)
+    );
+    this.currentScoreLabel = new ScoreLabel(
+      "Current Score",
+      {
+        fontFamily: "Arial",
+        fontSize: 24,
+        fill: "#ffffff",
+      },
+      this.snake.coordinates.length - 1
     );
     this.bestScoreLabel = new ScoreLabel(
       "Best Score",
@@ -38,13 +47,8 @@ class Game extends Application {
         fontSize: 24,
         fill: "#ffffff",
       },
-      localStorage.getItem("bestScore")
+      this.gameManager.bestScore[this.gameManager.activeGameMode]
     );
-    this.currentScoreLabel = new ScoreLabel("Current Score", {
-      fontFamily: "Arial",
-      fontSize: 24,
-      fill: "#ffffff",
-    });
     this.menuButton = new Button(
       "Menu",
       100,
@@ -54,11 +58,7 @@ class Game extends Application {
     );
 
     document.body.appendChild(this.view);
-    this.addChildren(this.stage, [this.menu, this.gui.gameFieldContainer]);
-    this.addChildren(this.gui.gameFieldContainer, [
-      this.gui.fieldContainer,
-      this.gui.labelsContainer,
-    ]);
+    this.addChildren(this.stage, [this.menu, this.gui]);
     this.addChildren(this.gui.labelsContainer, [
       this.bestScoreLabel,
       this.currentScoreLabel,
@@ -74,7 +74,7 @@ class Game extends Application {
     this.elapsedTime = 0;
 
     // Start the game loop
-    this.ticker.add((delta) => this.gameLoop(delta));
+    this.ticker.add(this.gameLoop.bind(this));
   }
 
   align() {
@@ -82,16 +82,14 @@ class Game extends Application {
     this.renderer.resize(window.innerWidth, window.innerHeight);
 
     // Align game field and its components
-    this.gui.align(this.rows, this.columns);
+    this.gui.align(this.rows, this.columns, this.wall, this.snake, this.food);
     this.bestScoreLabel.align(this.gui.cellSize * 1.5, this.gui.cellSize * 1.5);
     this.currentScoreLabel.align(
       this.gui.cellSize * 1.5,
       this.gui.cellSize * 2.25
     );
     this.menuButton.align(
-      this.gui.gameFieldContainer.width -
-        this.menuButton.width -
-        this.gui.cellSize * 1.5,
+      this.gui.width - this.menuButton.width - this.gui.cellSize * 1.5,
       this.gui.cellSize * 1.5
     );
 
@@ -106,8 +104,8 @@ class Game extends Application {
     const centerX = (window.innerWidth - gameWidth) / 2;
     const centerY = (window.innerHeight - gameHeight) / 2;
 
-    this.gameFieldContainer.x = centerX;
-    this.gameFieldContainer.y = centerY;
+    this.x = centerX;
+    this.y = centerY;
   }
 
   addChildren(container, items) {
@@ -118,7 +116,22 @@ class Game extends Application {
     }
   }
 
-  gameLoop(delta) {
+  restart() {
+    this.gameManager.reset(
+      this.wall,
+      this.snake,
+      this.food,
+      this.currentScoreLabel,
+      this.bestScoreLabel,
+      this.menu.selectedOption
+    );
+
+    this.gui.display(this.wall, this.snake, this.food);
+
+    this.gameManager.setGameOver(false);
+  }
+
+  gameLoop() {
     if (!this.gameManager.gameOver && !this.gameManager.gamePause) {
       // Add the time since the last frame to the elapsed time
       this.elapsedTime += this.ticker.elapsedMS;
@@ -138,9 +151,9 @@ class Game extends Application {
         // Reset the elapsed time while keeping the remainder to stay accurate
         this.elapsedTime %= this.snake.getSpeed();
       }
-    }
 
-    this.gui.render(this.wall, this.snake, this.food);
+      this.gui.display(this.wall, this.snake, this.food);
+    }
   }
 
   destroy() {

@@ -1,15 +1,23 @@
 // GUI class to handle the game's user interface
-class GUI {
+class GUI extends PIXI.Container {
   constructor() {
-    // Initialize GUI components
-    this.gameFieldContainer = new PIXI.Container();
+    super();
+
+    // Size of the each cell on the field
+    this.cellSize = 0;
+
+    // Initialize GUI containers
     this.fieldContainer = new PIXI.Container();
     this.labelsContainer = new PIXI.Container();
 
-    this.cellSize = 0;
+    // Add children to the container
+    this.addChild(this.fieldContainer);
+    this.addChild(this.labelsContainer);
+
+    this.toggleGameFieldContainerVisibility();
   }
 
-  align(rows, columns) {
+  align(rows, columns, wall, snake, food) {
     // You might also want to adjust other game elements here
     this.cellSize = Math.min(
       window.innerWidth / rows,
@@ -24,6 +32,7 @@ class GUI {
     this.setGameFieldBackground(rows, columns);
     // Remove all items from the field
     this.fieldContainer.removeChildren();
+    this.display(wall, snake, food);
   }
 
   drawRect(graphic, color, x, y, width, height) {
@@ -35,16 +44,13 @@ class GUI {
   setGameFieldBackground(rows, columns) {
     let backgroundContainer = undefined;
 
-    if (
-      this.gameFieldContainer.children.length &&
-      this.gameFieldContainer.getChildAt(0).name === "background"
-    ) {
-      backgroundContainer = this.gameFieldContainer.getChildAt(0);
+    if (this.children.length && this.getChildAt(0).name === "background") {
+      backgroundContainer = this.getChildAt(0);
       backgroundContainer.removeChildren();
     } else {
       backgroundContainer = new PIXI.Container();
       backgroundContainer.name = "background";
-      this.gameFieldContainer.addChildAt(backgroundContainer, 0);
+      this.addChildAt(backgroundContainer, 0);
     }
 
     for (let row = 0; row < rows; row++) {
@@ -67,7 +73,7 @@ class GUI {
   }
 
   setBackground() {
-    const parentContainer = this.gameFieldContainer.parent;
+    const parentContainer = this.parent;
     // Create a canvas element
     const canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
@@ -109,8 +115,8 @@ class GUI {
     const centerX = (window.innerWidth - gameWidth) / 2;
     const centerY = (window.innerHeight - gameHeight) / 2;
 
-    this.gameFieldContainer.x = centerX;
-    this.gameFieldContainer.y = centerY;
+    this.x = centerX;
+    this.y = centerY;
   }
 
   filterChildren() {
@@ -162,11 +168,11 @@ class GUI {
   }
 
   toggleGameFieldContainerVisibility() {
-    this.gameFieldContainer.visible = !this.gameFieldContainer.visible;
+    this.visible = !this.visible;
   }
 
   // Call this method when the food position is updated
-  render(wall, snake, food) {
+  display(wall, snake, food) {
     const existingGraphics = this.filterChildren();
     const items = [wall, snake, food];
 

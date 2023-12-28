@@ -1,8 +1,12 @@
-class Item {
+class Item extends Storage {
   constructor(name, color) {
-    this.name = name;
-    this.color = color;
-    this.coordinates = [{ row: 0, col: 0 }];
+    super(name);
+
+    if (this.localStorageData === null) {
+      this.name = name;
+      this.color = color;
+      this.coordinates = [{ row: 0, col: 0 }];
+    }
   }
 
   reset() {
@@ -10,17 +14,14 @@ class Item {
   }
 
   remove(point) {
-    const newCoordinates = [];
-
     for (let i = 0; i < this.coordinates.length; i++) {
       const coordinate = this.coordinates[i];
 
-      if (coordinate.row !== point.row || coordinate.col !== point.col) {
-        newCoordinates.push(coordinate);
+      if (coordinate.row === point.row || coordinate.col === point.col) {
+        this.coordinates.splice(i, 1);
+        break;
       }
     }
-
-    this.coordinates = newCoordinates;
   }
 
   add(point) {
@@ -33,22 +34,26 @@ class Snake extends Item {
   constructor(fieldWidth, fieldHeight) {
     super("SNAKE", "0x000000");
 
-    this.key = "";
-    this.initial_coordinates = [
-      {
-        row: Math.floor(fieldWidth / 2),
-        col: Math.floor(fieldHeight / 2),
-      },
-    ];
-    this.direction = { row: 0, col: -1 };
-    // 1000 milliseconds = 1 second
-    this.speed = 1000;
+    if (this.localStorageData === null) {
+      this.initial_coordinates = [
+        {
+          row: Math.floor(fieldWidth / 2),
+          col: Math.floor(fieldHeight / 2),
+        },
+      ];
+      this.key = "ArrowUp";
+      this.direction = { row: 0, col: -1 };
+      // 1000 milliseconds = 1 second
+      this.speed = 1000;
+    }
 
     // Add event listener for keydown events
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
   }
 
   reset() {
+    this.key = "ArrowUp";
+    this.direction = { row: 0, col: -1 };
     this.coordinates = Array.from(this.initial_coordinates);
     // 1000 milliseconds = 1 second
     this.speed = 1000;
@@ -152,7 +157,9 @@ class Wall extends Item {
   constructor(rows, columns) {
     super("WALL", "0xa85c32");
 
-    this.setWalls(rows, columns);
+    if (this.localStorageData === null) {
+      this.setWalls(rows, columns);
+    }
   }
 
   reset() {

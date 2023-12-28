@@ -2,18 +2,16 @@ class Menu extends PIXI.Container {
   constructor(
     options,
     selectedOption,
-    setGameOver,
+    restartGame,
     toggleGamePause,
     toggleGameFieldContainerVisibility
   ) {
     super();
 
-    this.setGameOver = setGameOver;
-    this.selectedOption = new String(selectedOption);
+    this.restartGame = restartGame;
     this.toggleGamePause = toggleGamePause;
     this.toggleGameFieldContainerVisibility =
       toggleGameFieldContainerVisibility;
-    this.visible = false;
 
     // Title label at the top
     this.titleLabel = new Label("Choose game mode", {
@@ -23,14 +21,19 @@ class Menu extends PIXI.Container {
     });
     this.addChild(this.titleLabel);
 
+    this.radioButtons = {};
+    this.initialySelectedOption = new String(selectedOption).valueOf();
+    this.selectedOption = new String(selectedOption).valueOf();
+
     // Arrange radio buttons in a column
     for (const key in options) {
       const radioButton = new RadioButton(
         options[key],
         this.handleSelect.bind(this, options[key])
       );
-      radioButton.setSelected(options[key] === selectedOption);
 
+      radioButton.setSelected(options[key] === selectedOption);
+      this.radioButtons[options[key]] = radioButton;
       this.addChild(radioButton);
     }
 
@@ -40,7 +43,7 @@ class Menu extends PIXI.Container {
       100,
       50,
       0xffffff,
-      this.handlePlay.bind(this)
+      this.onPressPlay.bind(this)
     );
     // Exit button below play button
     this.exitButton = new Button(
@@ -48,52 +51,34 @@ class Menu extends PIXI.Container {
       100,
       50,
       0xffffff,
-      this.toggleMenu.bind(this)
+      this.onPressExit.bind(this)
     );
 
     this.addChild(this.playButton);
     this.addChild(this.exitButton);
-
-    this.toggleMenu();
-  }
-
-  setSelectedOption(option) {
-    this.selectedOption = option;
-  }
-
-  getSelectedOption() {
-    let selectedOption = "";
-
-    for (let i = 0; i < this.children.length; i++) {
-      const child = this.children[i];
-
-      if (child instanceof RadioButton) {
-        if (child.innerSquare.visible) {
-          selectedOption = child.label.text;
-        }
-      }
-    }
-
-    return selectedOption;
-  }
-
-  handlePlay() {
-    this.setGameOver(false);
-    this.setSelectedOption(this.getSelectedOption());
-    this.toggleMenu();
   }
 
   handleSelect(option) {
-    for (let i = 0; i < this.children.length; i++) {
-      const child = this.children[i];
+    this.radioButtons[this.selectedOption].setSelected(false);
+    this.radioButtons[option].setSelected(true);
+    this.selectedOption = new String(option).valueOf();
+  }
 
-      if (child instanceof RadioButton) {
-        child.setSelected(child.label.text === option);
-      }
-    }
+  onPressExit() {
+    this.handleSelect(this.initialySelectedOption);
+    this.toggleMenu();
+  }
+
+  onPressPlay() {
+    this.restartGame();
+    this.toggleMenu();
   }
 
   toggleMenu() {
+    if (!this.visible) {
+      this.initialySelectedOption = new String(this.selectedOption).valueOf();
+    }
+
     this.toggleGamePause();
     this.toggleGameFieldContainerVisibility();
     this.toggleMenuContainerVisibility();
@@ -245,11 +230,7 @@ class ScoreLabel extends Label {
     super(text, style);
     this.content = text;
 
-    if (score) {
-      this.score = score;
-    } else {
-      this.score = 0;
-    }
+    this.setScore(score);
 
     this.setText();
   }
@@ -264,10 +245,13 @@ class ScoreLabel extends Label {
   }
 
   setScore(score) {
-    if (score > this.score) {
+    if (score) {
       this.score = score;
-      this.setText();
+    } else {
+      this.score = 0;
     }
+
+    this.setText();
   }
 
   getScore() {
