@@ -24,12 +24,10 @@ class GUI extends PIXI.Container {
       window.innerHeight / columns
     );
 
-    //
-    this.setBackground();
-    //
-    this.centerGameField(rows, columns);
-    //
-    this.setGameFieldBackground(rows, columns);
+    // Set background
+    this.setBackground(rows, columns);
+    // Center game field
+    this.centerContainer(rows, columns);
     // Remove all items from the field
     this.fieldContainer.removeChildren();
     this.display(wall, snake, food);
@@ -41,7 +39,7 @@ class GUI extends PIXI.Container {
     graphic.endFill();
   }
 
-  setGameFieldBackground(rows, columns) {
+  setBackground(rows, columns) {
     let backgroundContainer = undefined;
 
     if (this.children.length && this.getChildAt(0).name === "background") {
@@ -72,43 +70,7 @@ class GUI extends PIXI.Container {
     }
   }
 
-  setBackground() {
-    const parentContainer = this.parent;
-    // Create a canvas element
-    const canvas = document.createElement("canvas");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Draw a gradient on the canvas
-    const ctx = canvas.getContext("2d");
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "brown"); // Start color
-    gradient.addColorStop(1, "green"); // End color
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Create a Pixi texture from the canvas
-    const texture = PIXI.Texture.from(canvas);
-
-    let background = undefined;
-
-    if (
-      parentContainer.children.length &&
-      parentContainer.getChildAt(0).name === "background"
-    ) {
-      background = parentContainer.getChildAt(0);
-    } else {
-      // Create a Pixi sprite using the texture
-      background = new PIXI.Sprite();
-      background.name = "background";
-      // Add the sprite to app.parentContainer
-      parentContainer.addChildAt(background, 0);
-    }
-
-    background.texture = texture;
-  }
-
-  centerGameField(rows, columns) {
+  centerContainer(rows, columns) {
     const gameWidth = columns * this.cellSize;
     const gameHeight = rows * this.cellSize;
 

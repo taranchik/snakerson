@@ -41,7 +41,6 @@ class Snake extends Item {
           col: Math.floor(fieldHeight / 2),
         },
       ];
-      this.key = "ArrowUp";
       this.direction = { row: 0, col: -1 };
       // 1000 milliseconds = 1 second
       this.speed = 1000;
@@ -52,22 +51,16 @@ class Snake extends Item {
   }
 
   reset() {
-    this.key = "ArrowUp";
     this.direction = { row: 0, col: -1 };
     this.coordinates = Array.from(this.initial_coordinates);
     // 1000 milliseconds = 1 second
     this.speed = 1000;
   }
 
-  handleKeyDown() {
+  handleKeyDown(event) {
     event.preventDefault();
 
-    this.key = event.key;
-  }
-
-  // Method to update the snake's direction based on key presses
-  move() {
-    switch (this.key) {
+    switch (event.key) {
       case "ArrowUp":
         if (this.direction.col !== 1) {
           this.direction = { row: 0, col: -1 };
@@ -90,11 +83,10 @@ class Snake extends Item {
         }
         break;
     }
-
-    this.extend();
   }
 
-  extend() {
+  // Method to update the snake's direction based on key presses
+  move() {
     const nextHead = this.getNextHead();
 
     const arrayLength = this.coordinates.unshift(nextHead);

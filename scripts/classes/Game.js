@@ -1,6 +1,6 @@
 // Game class to initialize and run the game loop
 class Game extends Application {
-  constructor(rows, columns) {
+  constructor(rows, columns, backgroundPath) {
     super({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -8,6 +8,18 @@ class Game extends Application {
 
     // Ensure the canvas fills the entire screen
     this.view.style.cssText = "position: absolute; display: block;";
+
+    // Set game background
+    PIXI.Loader.shared.add("background", backgroundPath).load(
+      function () {
+        this.background = new PIXI.Sprite(
+          PIXI.Loader.shared.resources["background"].texture
+        );
+        this.background.name = "background";
+        this.stage.addChildAt(this.background, 0);
+        this.alignBackground();
+      }.bind(this)
+    );
 
     this.rows = rows;
     this.columns = columns;
@@ -77,6 +89,27 @@ class Game extends Application {
     this.ticker.add(this.gameLoop.bind(this));
   }
 
+  alignBackground() {
+    // Resize background
+    if (this.background) {
+      // Calculate scale factors
+      const excess = 2; // pixels of excess on each side
+      const scaleX =
+        (window.innerWidth + excess) / this.background.texture.width;
+      const scaleY =
+        (window.innerHeight + excess) / this.background.texture.height;
+      const scale = Math.max(scaleX, scaleY);
+
+      // Apply scale and central positioning
+      this.background.scale.set(scale, scale);
+      this.background.anchor.set(0.5, 0.5);
+      this.background.position.set(
+        window.innerWidth / 2,
+        window.innerHeight / 2
+      );
+    }
+  }
+
   align() {
     // Align app stage
     this.renderer.resize(window.innerWidth, window.innerHeight);
@@ -95,17 +128,9 @@ class Game extends Application {
 
     // Align menu
     this.menu.align(window.innerWidth, window.innerHeight);
-  }
 
-  centerGameField(rows, columns) {
-    const gameWidth = columns * this.cellSize;
-    const gameHeight = rows * this.cellSize;
-
-    const centerX = (window.innerWidth - gameWidth) / 2;
-    const centerY = (window.innerHeight - gameHeight) / 2;
-
-    this.x = centerX;
-    this.y = centerY;
+    // Set game background
+    this.alignBackground();
   }
 
   addChildren(container, items) {

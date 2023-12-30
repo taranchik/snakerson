@@ -22,8 +22,8 @@ class Menu extends PIXI.Container {
     this.addChild(this.titleLabel);
 
     this.radioButtons = {};
-    this.initialySelectedOption = new String(selectedOption).valueOf();
-    this.selectedOption = new String(selectedOption).valueOf();
+    this.initialySelectedOption = selectedOption;
+    this.selectedOption = selectedOption;
 
     // Arrange radio buttons in a column
     for (const key in options) {
@@ -56,12 +56,24 @@ class Menu extends PIXI.Container {
 
     this.addChild(this.playButton);
     this.addChild(this.exitButton);
+
+    this.background = new PIXI.Graphics();
+    this.addChildAt(this.background, 0);
+
+    // Add event listener for keydown events
+    window.addEventListener("keydown", this.handleEscapePress.bind(this));
+  }
+
+  handleEscapePress(event) {
+    if (event.key === "Escape") {
+      this.toggleMenu();
+    }
   }
 
   handleSelect(option) {
     this.radioButtons[this.selectedOption].setSelected(false);
     this.radioButtons[option].setSelected(true);
-    this.selectedOption = new String(option).valueOf();
+    this.selectedOption = option;
   }
 
   onPressExit() {
@@ -76,7 +88,7 @@ class Menu extends PIXI.Container {
 
   toggleMenu() {
     if (!this.visible) {
-      this.initialySelectedOption = new String(this.selectedOption).valueOf();
+      this.initialySelectedOption = this.selectedOption;
     }
 
     this.toggleGamePause();
@@ -88,11 +100,20 @@ class Menu extends PIXI.Container {
     this.visible = !this.visible;
   }
 
-  align(parentWidth, parentHeight) {
+  // Align menu background
+  alignBackground() {
+    this.background.clear();
+    this.background.beginFill(0x008f5b, 0.7);
+    this.background.drawRect(0, -25, 339, 480); // x, y, width, height
+    this.background.endFill();
+  }
+
+  alignContent() {
     // Control current Y position
     let currentY = this.titleLabel.height + 60;
+
     // Center titleLabel horizontally
-    this.titleLabel.x = (parentWidth - this.titleLabel.width) / 2;
+    this.titleLabel.x = (this.width - this.titleLabel.width) / 2;
     // currentX to control RadioButtons vertical position
     let currentX = 0;
 
@@ -102,7 +123,7 @@ class Menu extends PIXI.Container {
 
       if (child instanceof RadioButton) {
         if (!currentX) {
-          currentX = (parentWidth - child.width) / 2;
+          currentX = (this.width - child.width) / 2;
         }
 
         // Set y position
@@ -119,20 +140,33 @@ class Menu extends PIXI.Container {
     // Sum width of both buttons and the offset between them
     const combinedButtonsWidth =
       this.playButton.width + horizontalButtonsOffset + this.exitButton.width;
-
     // Set playButton y position
     this.playButton.y = currentY;
-    // Calculate and set x for playButton
-    this.playButton.x = (parentWidth - combinedButtonsWidth * 2) / 2;
+    // playButton is start point of both Buttons
+    // Parent container width substract full width of both buttons and then divided by 2
+    // Finally, substract playButton width, because playButton and exitButton are positioned sequentially
+    // and x-position of the playButton needs to be shifted back by its own width.
+    this.playButton.x =
+      (this.width - combinedButtonsWidth) / 2 - this.playButton.width;
 
     // Set exitButton y position
     this.exitButton.y = currentY;
     // Calculate and set x for exitButton
     this.exitButton.x =
       this.playButton.x + this.playButton.width + horizontalButtonsOffset;
+  }
 
+  centerContainer(outerWidth, outerHeight) {
+    // Center container horizontally
+    this.x = (outerWidth - this.width) / 2;
     // Center container vertically
-    this.y = (parentHeight - this.height) / 2;
+    this.y = (outerHeight - this.height) / 2;
+  }
+
+  align(outerWidth, outerHeight) {
+    this.alignBackground();
+    this.alignContent();
+    this.centerContainer(outerWidth, outerHeight);
   }
 }
 
