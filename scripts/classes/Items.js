@@ -9,8 +9,8 @@ class Item extends Storage {
     }
   }
 
-  reset() {
-    this.coordinates = [{ row: 0, col: 0 }];
+  add(point) {
+    this.coordinates.push(point);
   }
 
   remove(point) {
@@ -24,8 +24,8 @@ class Item extends Storage {
     }
   }
 
-  add(point) {
-    this.coordinates.push(point);
+  reset() {
+    this.coordinates = [{ row: 0, col: 0 }];
   }
 }
 
@@ -50,11 +50,31 @@ class Snake extends Item {
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
   }
 
-  reset() {
-    this.direction = { row: 0, col: -1 };
-    this.coordinates = Array.from(this.initial_coordinates);
-    // 1000 milliseconds = 1 second
-    this.speed = 1000;
+  getHead() {
+    return this.coordinates[0];
+  }
+
+  getNextHead() {
+    // Update the snake's head coordinates based on the current direction
+    const head = this.coordinates[0];
+    const nextHead = {
+      row: head.row + this.direction.row,
+      col: head.col + this.direction.col,
+    };
+
+    return nextHead;
+  }
+
+  getTail() {
+    return this.coordinates[this.coordinates.length - 1];
+  }
+
+  getSpeed() {
+    return this.speed;
+  }
+
+  setHead(point) {
+    this.coordinates[0] = point;
   }
 
   handleKeyDown(event) {
@@ -104,36 +124,11 @@ class Snake extends Item {
     this.speed = this.speed * 0.9;
   }
 
-  getTail() {
-    return this.coordinates[this.coordinates.length - 1];
-  }
-
-  setHead(point) {
-    this.coordinates[0] = point;
-  }
-
-  getHead() {
-    return this.coordinates[0];
-  }
-
-  getNextHead() {
-    // Update the snake's head coordinates based on the current direction
-    const head = this.coordinates[0];
-    const nextHead = {
-      row: head.row + this.direction.row,
-      col: head.col + this.direction.col,
-    };
-
-    return nextHead;
-  }
-
-  getSpeed() {
-    return this.speed;
-  }
-
-  // Call this method to clean up the event listener when the game ends
-  destroy() {
-    window.removeEventListener("keydown", this.handleKeyDown);
+  reset() {
+    this.direction = { row: 0, col: -1 };
+    this.coordinates = Array.from(this.initial_coordinates);
+    // 1000 milliseconds = 1 second
+    this.speed = 1000;
   }
 }
 
@@ -154,9 +149,11 @@ class Wall extends Item {
     }
   }
 
-  reset() {
-    for (let row = 0; row < this.coordinates.length; row++) {
-      for (let col = 0; col < this.coordinates.length[0]; col++) {
+  setWalls(rows, columns) {
+    this.coordinates = new Array();
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
         if (row === 0 || row === rows - 1 || col === 0 || col === columns - 1) {
           this.coordinates.push({ row, col });
         }
@@ -164,11 +161,9 @@ class Wall extends Item {
     }
   }
 
-  setWalls(rows, columns) {
-    this.coordinates = new Array();
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < columns; col++) {
+  reset() {
+    for (let row = 0; row < this.coordinates.length; row++) {
+      for (let col = 0; col < this.coordinates.length[0]; col++) {
         if (row === 0 || row === rows - 1 || col === 0 || col === columns - 1) {
           this.coordinates.push({ row, col });
         }

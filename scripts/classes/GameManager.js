@@ -18,51 +18,11 @@ class GameManager extends Storage {
       this.bestScore = { [this.gameModes.CLASSIC]: 0 };
       this.gameOver = false;
 
-      this.resetField(rows, columns);
-      this.resetCoordinates(wall, snake, food);
+      this._resetField(rows, columns);
+      this._resetCoordinates(wall, snake, food);
     }
 
     this.gamePause = true;
-  }
-
-  resetField(rows, columns) {
-    for (let row = 0; row < rows; row++) {
-      this.field[row] = new Array(columns);
-
-      for (let col = 0; col < columns; col++) {
-        this.field[row][col] = "";
-      }
-    }
-  }
-
-  resetCoordinates(wall, snake, food) {
-    const items = [wall, snake, food];
-
-    for (let i = 0; i < items.length; i++) {
-      const { name, coordinates } = items[i];
-
-      for (let j = 0; j < coordinates.length; j++) {
-        const point = coordinates[j];
-        const cell = this.getCell(point);
-
-        if (cell) {
-          const freeCell = this.findFreeCell(snake.getNextHead());
-
-          coordinates[j] = freeCell;
-          this.setCell(freeCell, name);
-        } else {
-          this.setCell(point, name);
-        }
-      }
-    }
-
-    if (
-      this.activeGameMode === this.gameModes.PORTAL &&
-      food.coordinates.length < 2
-    ) {
-      const freeCell = this.findFreeCell(snake.getNextHead());
-      this.setItemCell(food, freeCell);
-    }
   }
 
   getOppositeFieldSide(point) {
@@ -99,10 +59,6 @@ class GameManager extends Storage {
     return this.bestScore[this.activeGameMode];
   }
 
-  toggleGamePause() {
-    this.gamePause = !this.gamePause;
-  }
-
   setBestScore(score) {
     this.bestScore[this.activeGameMode] = score;
   }
@@ -119,18 +75,13 @@ class GameManager extends Storage {
     this.field[point.row][point.col] = itemName;
   }
 
-  removeCell(point) {
-    this.field[point.row][point.col] = "";
-  }
-
   setItemCell(item, point) {
     item.add(point);
     this.setCell(point, item.name);
   }
 
-  removeItemCell(item, point) {
-    item.remove(point);
-    this.removeCell(point);
+  toggleGamePause() {
+    this.gamePause = !this.gamePause;
   }
 
   findFreeCell(nextHead) {
@@ -143,6 +94,55 @@ class GameManager extends Storage {
       return this.findFreeCell(nextHead);
     } else {
       return { row, col };
+    }
+  }
+
+  removeCell(point) {
+    this.field[point.row][point.col] = "";
+  }
+
+  removeItemCell(item, point) {
+    item.remove(point);
+    this.removeCell(point);
+  }
+
+  _resetField(rows, columns) {
+    for (let row = 0; row < rows; row++) {
+      this.field[row] = new Array(columns);
+
+      for (let col = 0; col < columns; col++) {
+        this.field[row][col] = "";
+      }
+    }
+  }
+
+  _resetCoordinates(wall, snake, food) {
+    const items = [wall, snake, food];
+
+    for (let i = 0; i < items.length; i++) {
+      const { name, coordinates } = items[i];
+
+      for (let j = 0; j < coordinates.length; j++) {
+        const point = coordinates[j];
+        const cell = this.getCell(point);
+
+        if (cell) {
+          const freeCell = this.findFreeCell(snake.getNextHead());
+
+          coordinates[j] = freeCell;
+          this.setCell(freeCell, name);
+        } else {
+          this.setCell(point, name);
+        }
+      }
+    }
+
+    if (
+      this.activeGameMode === this.gameModes.PORTAL &&
+      food.coordinates.length < 2
+    ) {
+      const freeCell = this.findFreeCell(snake.getNextHead());
+      this.setItemCell(food, freeCell);
     }
   }
 
@@ -166,8 +166,8 @@ class GameManager extends Storage {
     this.setActiveGameMode(selectedGameMode);
     currentScoreLabel.reset();
     bestScoreLabel.setScore(this.getBestScore() || 0);
-    this.resetField(rows, columns);
-    this.resetCoordinates(wall, snake, food);
+    this._resetField(rows, columns);
+    this._resetCoordinates(wall, snake, food);
   }
 
   play(
